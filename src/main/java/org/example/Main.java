@@ -18,6 +18,7 @@ public class Main {
         Deque<Runnable> queue = new LinkedList<>();
 
         Extractor extractor = new Extractor("/Volumes/Andys_SSD/Online_Courses/Antra");
+        Iterator<Path> files = extractor.getIterator();
 
         // Producer Thread
         new Thread(() -> {
@@ -30,10 +31,14 @@ public class Main {
                             System.out.println(e.getMessage());
                         }
                     }
-                    if (!extractor.setNext()) {
+                    if (!files.hasNext()) {
                         break;
                     }
-                    queue.add(extractor.getTask());
+                    String fileName = files.next().toString();
+                    queue.add(() -> {
+                        extractor.invokeAI(fileName, extractor.getOutputPath(fileName));
+                    });
+                    System.out.println("Producer " + Thread.currentThread().getName() + ": " + fileName);
                     queue.notifyAll();
                 }
             }
@@ -54,5 +59,4 @@ public class Main {
            }
         }).start();
     }
-
 }
