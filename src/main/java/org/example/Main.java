@@ -15,14 +15,12 @@ public class Main {
 
 
         final int MAX_SIZE = 4;
-        PriorityQueue<Runnable> queue = new PriorityQueue<>();
-
+        Deque<Runnable> queue = new LinkedList<>();
 
         Extractor extractor = new Extractor("/Volumes/Andys_SSD/Online_Courses/Antra");
 
         // Producer Thread
         new Thread(() -> {
-
             while (true) {
                 synchronized (queue) {
                     while (queue.size() == MAX_SIZE) {
@@ -32,17 +30,29 @@ public class Main {
                             System.out.println(e.getMessage());
                         }
                     }
-
-
+                    if (!extractor.setNext()) {
+                        break;
+                    }
+                    queue.add(extractor.getTask());
+                    queue.notifyAll();
                 }
-
-
             }
-
-
         }).start();
 
-
+        new Thread(() -> {
+           while(true) {
+               synchronized (queue) {
+                   while(queue.isEmpty()) {
+                       try {
+                           queue.wait();
+                       } catch (InterruptedException e) {
+                           System.out.println(e.getMessage());
+                       }
+                   }
+                   new Thread(queue.poll()).start();
+               }
+           }
+        }).start();
     }
 
 }

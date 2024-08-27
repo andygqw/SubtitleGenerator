@@ -1,7 +1,5 @@
 package org.example;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,9 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
-
-
-public class Extractor implements Runnable {
+public class Extractor {
 
     Iterator<Path> iterator;
 
@@ -41,7 +37,7 @@ public class Extractor implements Runnable {
      * @param filePath The file path
      * @return the extension
      * */
-    public static String getFileExtension(String filePath) {
+    private static String getFileExtension(String filePath) {
         int dotIndex = filePath.lastIndexOf('.');
 
         if (dotIndex > 0 && dotIndex < filePath.length() - 1) {
@@ -78,14 +74,21 @@ public class Extractor implements Runnable {
 
             inputAudioPath = iterator.next().toString();
             outputSrtPath = changeFileExtension(inputAudioPath);
+            System.out.println("Produced: " + inputAudioPath);
             return true;
         }
         return false;
     }
 
-    @Override
-    public void run() {
+    public Runnable getTask(){
+        return () -> {
 
-        System.out.println("Extractor: " + inputAudioPath + " -> " + outputSrtPath);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Consumed " + Thread.currentThread().getName() + ": " + outputSrtPath);
+        };
     }
 }
