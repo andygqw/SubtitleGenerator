@@ -158,6 +158,10 @@ public class Extractor {
         System.out.println("Sending request: " + file.getName());
         HttpResponse<String> response = HttpClient.newHttpClient().send(request,
                 HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("HTTP error code : " + response.toString());
+        }
+        System.out.println("Received response: " + file.getName());
         return response.body();
     }
 
@@ -215,6 +219,9 @@ public class Extractor {
                 globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
             }
             System.out.println("Generated Srt file: " + outputFileName);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -225,18 +232,18 @@ public class Extractor {
 
     private static double parseTimestamp(String timestamp) {
         String[] parts = timestamp.split(":|\\.");
-        double hours = Double.parseDouble(parts[0]) * 3600;
-        double minutes = Double.parseDouble(parts[1]) * 60;
-        double seconds = Double.parseDouble(parts[2]);
-        double milliseconds = Double.parseDouble(parts[3]) / 1000;
-        return hours + minutes + seconds + milliseconds;
+//        double hours = Double.parseDouble(parts[0]) * 3600;
+//        double minutes = Double.parseDouble(parts[1]) * 60;
+        double seconds = Double.parseDouble(parts[0]);
+        double milliseconds = Double.parseDouble(parts[1]) / 1000;
+        return seconds + milliseconds;
     }
 
     private static String formatSrtTimestamp(double seconds) {
         int hours = (int) (seconds / 3600);
         int minutes = (int) ((seconds % 3600) / 60);
         int secs = (int) (seconds % 60);
-        int millis = (int) ((seconds - secs) * 1000);
+        int millis = (int) Math.round((seconds - secs) * 1000);
 
         return String.format("%02d:%02d:%02d,%03d", hours, minutes, secs, millis);
     }

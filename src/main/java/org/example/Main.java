@@ -35,7 +35,7 @@ public class Main {
 
         executorService.shutdown();
         try {
-            if (!executorService.awaitTermination(600, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(3600, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {
