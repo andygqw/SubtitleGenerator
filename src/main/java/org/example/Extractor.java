@@ -136,33 +136,43 @@ public class Extractor {
             System.out.println("Consumer invoked " + Thread.currentThread().getName() + ": " + outputPath);
 
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
     private static String sendApiRequest(File file) throws IOException, InterruptedException {
 
-        byte[] fileBytes = Files.readAllBytes(file.toPath());
+        int retry = 0;
+        while(retry < 5) {
+            try {
+                byte[] fileBytes = Files.readAllBytes(file.toPath());
 
-        StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
-        sb.append(System.getenv("CF_ACCOUNT_ID"));
-        sb.append("/ai/run/@cf/openai/whisper-tiny-en");
+                StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
+                sb.append(System.getenv("CF_ACCOUNT_ID"));
+                sb.append("/ai/run/@cf/openai/whisper-tiny-en");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(sb.toString()))
-                .header("Content-Type", "application/octet-stream")
-                .header("Authorization", System.getenv("CF_API_TOKEN"))
-                .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
-                .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(sb.toString()))
+                        .header("Content-Type", "application/octet-stream")
+                        .header("Authorization", System.getenv("CF_API_TOKEN"))
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
+                        .build();
 
-        System.out.println("Sending request: " + file.getName());
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-                HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("HTTP error code : " + response.toString());
+                System.out.println("Sending request: " + file.getName());
+                HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+                        HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new RuntimeException("HTTP error code : " + response.toString());
+                }
+                System.out.println("Received response: " + file.getName());
+                return response.body();
+            } catch (Exception e) {
+                retry++;
+                System.out.println(file.getName() + ": " + e.getMessage() + " re-trying...");
+            }
         }
-        System.out.println("Received response: " + file.getName());
-        return response.body();
+        throw new RuntimeException(file.getName() + ": request failed retry timeout");
     }
 
     private static void generateSrtFile(List<String> results, String outputFileName) throws IOException {
