@@ -26,16 +26,16 @@ public class Main {
         while(files.hasNext()){
 
             String fileName = files.next().toString();
-            System.out.println("Producer " + Thread.currentThread().getName() + ": " + fileName);
 
             executorService.submit(() -> {
+                System.out.println("Producer " + Thread.currentThread().getName() + ": " + fileName);
                 extractor.invokeAI(fileName, extractor.getOutputPath(fileName));
             });
         }
 
         executorService.shutdown();
         try {
-            if (!executorService.awaitTermination(300, TimeUnit.SECONDS)) {
+            if (!executorService.awaitTermination(600, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
             }
         } catch (InterruptedException e) {

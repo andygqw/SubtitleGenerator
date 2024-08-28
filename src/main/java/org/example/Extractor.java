@@ -24,7 +24,7 @@ public class Extractor {
     private final Iterator<Path> iterator;
 
     // Constants
-    private static final int MAX_SEGMENT_DURATION_SECONDS = 300;
+    private static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     private static final String OUTPUT_DIR = "/Volumes/Andys_SSD/Online_Courses/Antra/output_segments/";
 
     public Extractor(String path){
