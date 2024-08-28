@@ -243,7 +243,7 @@ public class Extractor {
         int hours = (int) (seconds / 3600);
         int minutes = (int) ((seconds % 3600) / 60);
         int secs = (int) (seconds % 60);
-        int millis = (int) Math.round((seconds - secs) * 1000);
+        int millis = (int) ((seconds % 1) * 1000);
 
         return String.format("%02d:%02d:%02d,%03d", hours, minutes, secs, millis);
     }
