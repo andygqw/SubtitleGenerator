@@ -178,7 +178,14 @@ public class Extractor {
 
         while (!(current > duration)) {
 
-            String segmentFileName = String.format(OUTPUT_DIR + audioFileName.substring(0, audioFileName.lastIndexOf('.')) + "_segment_%03d.mp3", segmentNumber);
+            String innerFolder = OUTPUT_DIR + audioFileName + "/";
+
+            File outputDir = new File(innerFolder);
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            String segmentFileName = String.format(innerFolder + audioFileName.substring(0, audioFileName.lastIndexOf('.')) + "_segment_%03d.mp3", segmentNumber);
             ProcessBuilder pb = new ProcessBuilder(
                     "ffmpeg",
                     "-ss", String.valueOf(current),
@@ -191,7 +198,6 @@ public class Extractor {
 
             current += MAX_SEGMENT_DURATION_SECONDS;
 
-            // Run FFmpeg to create a segment
             int exitCode = runProcess(pb);
             if (exitCode == 0) {
                 File segmentFile = new File(segmentFileName);
