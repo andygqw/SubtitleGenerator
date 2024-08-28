@@ -27,6 +27,8 @@ public class Extractor {
     private static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     private static String OUTPUT_DIR = "/output/";
     private static final int MAX_THREAD = 8;
+    private static final int MAX_RETRY = 3;
+    private static final String SKIP_MSG = "SKIP";
 
     public Extractor(String path){
 
@@ -141,7 +143,7 @@ public class Extractor {
     private static String sendApiRequest(File file) throws IOException, InterruptedException {
 
         int retry = 0;
-        while(retry < 3) {
+        while(retry < MAX_RETRY) {
             try {
                 if (retry != 0) {
                     Thread.sleep(300);
@@ -173,7 +175,7 @@ public class Extractor {
             }
         }
         System.out.println(file.getName() + ": skipped due to retry timeout");
-        return "FAILED";
+        return SKIP_MSG;
     }
 
     private static void generateSrtFile(List<String> results, String outputFileName) throws IOException {
@@ -183,7 +185,7 @@ public class Extractor {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
             for (String result : results) {
-                if (result.equals("FAILED")) {
+                if (result.equals(SKIP_MSG)) {
                     globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
                     continue;
                 }

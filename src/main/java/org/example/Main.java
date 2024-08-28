@@ -18,7 +18,7 @@ public class Main {
         final int MAX_SIZE = 1;
 
         // Define path here
-        Extractor extractor = new Extractor("/Volumes/Andys_SSD/Online_Courses/Antra");
+        Extractor extractor = new Extractor("path/to/your/video/folder");
         Iterator<Path> files = extractor.getIterator();
 
         ExecutorService executorService = Executors.newFixedThreadPool(MAX_SIZE);
