@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        final int MAX_SIZE = 4;
+        final int MAX_SIZE = 1;
 
         // Define path here
         Extractor extractor = new Extractor("/Volumes/Andys_SSD/Online_Courses/Antra");

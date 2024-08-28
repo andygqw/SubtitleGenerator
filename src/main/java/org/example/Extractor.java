@@ -12,10 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +26,7 @@ public class Extractor {
     // Constants
     private static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     private static String OUTPUT_DIR = "/output/";
-    private static final int MAX_THREAD = 4;
+    private static final int MAX_THREAD = 8;
 
     public Extractor(String path){
 
@@ -144,8 +141,11 @@ public class Extractor {
     private static String sendApiRequest(File file) throws IOException, InterruptedException {
 
         int retry = 0;
-        while(retry < 5) {
+        while(retry < 3) {
             try {
+                if (retry != 0) {
+                    Thread.sleep(300);
+                }
                 byte[] fileBytes = Files.readAllBytes(file.toPath());
 
                 StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
@@ -169,10 +169,11 @@ public class Extractor {
                 return response.body();
             } catch (Exception e) {
                 retry++;
-                System.out.println(file.getName() + ": " + e.getMessage() + " re-trying...");
+                System.out.println(file.getName() + ": " + e.getMessage() + " (" + retry + ")re-trying...");
             }
         }
-        throw new RuntimeException(file.getName() + ": request failed retry timeout");
+        System.out.println(file.getName() + ": skipped due to retry timeout");
+        return "FAILED";
     }
 
     private static void generateSrtFile(List<String> results, String outputFileName) throws IOException {
@@ -182,6 +183,10 @@ public class Extractor {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
             for (String result : results) {
+                if (result.equals("FAILED")) {
+                    globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
+                    continue;
+                }
                 JSONObject jsonResponse = new JSONObject(result);
                 String vttContent = jsonResponse.getJSONObject("result").getString("vtt");
 
