@@ -1,7 +1,9 @@
 package org.example;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -15,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.concurrent.TimeUnit;
 
 public class Extractor {
 
@@ -31,7 +34,7 @@ public class Extractor {
         try (Stream<Path> paths = Files.walk(Paths.get(path))) {
             paths.filter(Files::isRegularFile)
                     .filter(filePath -> !filePath.getFileName().toString().equals(".DS_Store"))
-                    .filter(filePath -> getFileExtension(filePath.getFileName().toString()).equals("mp3"))
+                    .filter(filePath -> getFileExtension(filePath.getFileName().toString()).equals("mkv"))
                     .forEach(files::add);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -67,7 +70,7 @@ public class Extractor {
      */
     private static String changeFileExtension(String filePath) {
 
-        String newExtension = "srt";
+        String newExtension = "mp4";
 
         // Find the last dot in the file path
         int dotIndex = filePath.lastIndexOf('.');
@@ -80,7 +83,7 @@ public class Extractor {
 
         return filePath.substring(0, dotIndex + 1) + newExtension;
     }
-    
+
 
     public String getOutputPath (String inputAudioPath){
 
@@ -93,21 +96,23 @@ public class Extractor {
 
             File file = new File(inputAudioPath);
 
-            byte[] fileBytes = Files.readAllBytes(file.toPath());
+            splitAudioIntoSegments(file);
 
-            StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
-            sb.append(System.getenv("CF_ACCOUNT_ID"));
-            sb.append("/ai/run/@cf/openai/whisper-tiny-en");
+//            byte[] fileBytes = Files.readAllBytes(file.toPath());
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(sb.toString()))
-                    .header("Content-Type", "application/octet-stream")
-                    .header("Authorization", System.getenv("CF_API_TOKEN"))
-                    .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
-                    .build();
-
-            HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-                    HttpResponse.BodyHandlers.ofString());
+//            StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
+//            sb.append(System.getenv("CF_ACCOUNT_ID"));
+//            sb.append("/ai/run/@cf/openai/whisper-tiny-en");
+//
+//            HttpRequest request = HttpRequest.newBuilder()
+//                    .uri(URI.create(sb.toString()))
+//                    .header("Content-Type", "application/octet-stream")
+//                    .header("Authorization", System.getenv("CF_API_TOKEN"))
+//                    .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
+//                    .build();
+//
+//            HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+//                    HttpResponse.BodyHandlers.ofString());
 
             System.out.println("Consumer invoked " + Thread.currentThread().getName() + ": " + outputPath);
         } catch (IOException | InterruptedException e) {
@@ -124,42 +129,67 @@ public class Extractor {
             outputDir.mkdirs();
         }
 
-        // Extract audio from the video using FFmpeg
-        String audioFileName = OUTPUT_DIR + "extracted_audio.mp3";
-        extractAudioFromVideo(videoFile, audioFileName);
+        // Get duration of a file
+        double duration = getAudioDuration(videoFile.getAbsolutePath());
 
-        // Split the extracted audio into 5-minute segments
-        audioSegments = splitAudioUsingFFmpeg(new File(audioFileName));
+        audioSegments = splitAudioUsingFFmpeg(videoFile, duration);
 
         return audioSegments;
     }
 
-    private static void extractAudioFromVideo(File videoFile, String outputAudioFile) throws IOException, InterruptedException {
+//    private static void extractAudioFromVideo(File videoFile, String outputAudioFile) throws IOException, InterruptedException {
+//        ProcessBuilder pb = new ProcessBuilder(
+//                "ffmpeg",
+//                "-i", videoFile.getAbsolutePath(),
+//                "-vn",
+//                "-acodec", "mp3",
+//                outputAudioFile
+//        );
+//
+//        int exitCode = runProcess(pb);
+//        if (exitCode != 0) {
+//            throw new RuntimeException("Failed to extract audio from video: " + videoFile.getName());
+//        }
+//    }
+
+    private static double getAudioDuration(String filePath) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(
-                "ffmpeg",
-                "-i", videoFile.getAbsolutePath(), // Input video file
-                "-vn", // No video
-                "-acodec", "mp3", // Output audio codec
-                outputAudioFile // Output audio file
+                "ffprobe", "-i", filePath,
+                "-show_entries", "format=duration",
+                "-v", "quiet",
+                "-of", "csv=p=0"
         );
 
-        runProcess(pb);
+        Process process = pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String duration = reader.readLine();
+        process.waitFor();
+
+        return Double.parseDouble(duration);
     }
 
-    private static List<File> splitAudioUsingFFmpeg(File audioFile) throws IOException, InterruptedException {
+    private static List<File> splitAudioUsingFFmpeg(File videoFile, double duration) throws IOException, InterruptedException {
         List<File> segments = new ArrayList<>();
         int segmentNumber = 0;
-        boolean moreSegments = true;
 
-        while (moreSegments) {
-            String segmentFileName = String.format(OUTPUT_DIR + "segment_%03d.mp3", segmentNumber);
+        String audioFileName = videoFile.getName();
+
+        double current = 0.0;
+
+        while (!(current > duration)) {
+
+            String segmentFileName = String.format(OUTPUT_DIR + audioFileName.substring(0, audioFileName.lastIndexOf('.')) + "_segment_%03d.mp3", segmentNumber);
             ProcessBuilder pb = new ProcessBuilder(
                     "ffmpeg",
-                    "-i", audioFile.getAbsolutePath(),
-                    "-ss", String.valueOf(segmentNumber * MAX_SEGMENT_DURATION_SECONDS), // Start time in seconds
-                    "-t", String.valueOf(MAX_SEGMENT_DURATION_SECONDS), // Duration
+                    "-ss", String.valueOf(current),
+                    "-t", String.valueOf(MAX_SEGMENT_DURATION_SECONDS),
+                    "-i", videoFile.getAbsolutePath(),
+                    "-vn",
+                    "-acodec", "mp3",
                     segmentFileName
             );
+
+            current += MAX_SEGMENT_DURATION_SECONDS;
 
             // Run FFmpeg to create a segment
             int exitCode = runProcess(pb);
@@ -167,13 +197,12 @@ public class Extractor {
                 File segmentFile = new File(segmentFileName);
                 if (segmentFile.exists()) {
                     segments.add(segmentFile);
-                    segmentNumber++;
-                } else {
-                    moreSegments = false; // No more segments, stop the loop
+                    System.out.println(audioFileName + " added: " + segmentNumber);
                 }
             } else {
-                moreSegments = false; // Error occurred, stop the loop
+                throw new RuntimeException("Failed to parse audio on segment: " + segmentNumber);
             }
+            segmentNumber++;
         }
 
         return segments;
@@ -182,7 +211,7 @@ public class Extractor {
     private static int runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
         pb.redirectErrorStream(true);
         Process process = pb.start();
-        process.waitFor(60, TimeUnit.SECONDS); // Wait up to 60 seconds for the process to complete
+        process.waitFor(60, TimeUnit.SECONDS);
         return process.exitValue();
     }
 }
