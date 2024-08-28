@@ -15,9 +15,9 @@ public class Main {
 
     public static void main(String[] args) {
 
-
         final int MAX_SIZE = 4;
 
+        // Define path here
         Extractor extractor = new Extractor("/Volumes/Andys_SSD/Online_Courses/Antra");
         Iterator<Path> files = extractor.getIterator();
 

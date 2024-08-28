@@ -1,9 +1,9 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +28,8 @@ public class Extractor {
 
     // Constants
     private static final int MAX_SEGMENT_DURATION_SECONDS = 60;
-    private static final String OUTPUT_DIR = "/Volumes/Andys_SSD/Online_Courses/Antra/output_segments/";
+    private static String OUTPUT_DIR = "/output/";
+    private static final int MAX_THREAD = 4;
 
     public Extractor(String path){
 
@@ -41,6 +45,7 @@ public class Extractor {
         }
 
         iterator = files.iterator();
+        OUTPUT_DIR = path + OUTPUT_DIR;
     }
 
     public Iterator<Path> getIterator () {
@@ -68,9 +73,7 @@ public class Extractor {
      * @param filePath The original file path
      * @return The file path with the new extension
      */
-    private static String changeFileExtension(String filePath) {
-
-        String newExtension = "mp4";
+    private static String changeFileExtension(String filePath, String newExtension) {
 
         // Find the last dot in the file path
         int dotIndex = filePath.lastIndexOf('.');
@@ -87,7 +90,7 @@ public class Extractor {
 
     public String getOutputPath (String inputAudioPath){
 
-        return changeFileExtension(inputAudioPath);
+        return changeFileExtension(inputAudioPath, "srt");
     }
 
     public void invokeAI(String inputAudioPath, String outputPath){
@@ -96,28 +99,146 @@ public class Extractor {
 
             File file = new File(inputAudioPath);
 
-            splitAudioIntoSegments(file);
+            //List<File> files = splitAudioIntoSegments(file);
 
-//            byte[] fileBytes = Files.readAllBytes(file.toPath());
+            File output = new File(OUTPUT_DIR + file.getName());
+            if(!output.exists()){
+                throw new RuntimeException("No output folder");
+            }
 
-//            StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
-//            sb.append(System.getenv("CF_ACCOUNT_ID"));
-//            sb.append("/ai/run/@cf/openai/whisper-tiny-en");
-//
-//            HttpRequest request = HttpRequest.newBuilder()
-//                    .uri(URI.create(sb.toString()))
-//                    .header("Content-Type", "application/octet-stream")
-//                    .header("Authorization", System.getenv("CF_API_TOKEN"))
-//                    .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
-//                    .build();
-//
-//            HttpResponse<String> response = HttpClient.newHttpClient().send(request,
-//                    HttpResponse.BodyHandlers.ofString());
+            ExecutorService executor = Executors.newFixedThreadPool(MAX_THREAD);
+            List<CompletableFuture<String>> futures = new ArrayList<>();
+
+            if(output.isDirectory()){
+                for(File segment : output.listFiles()){
+
+                    CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+                        try {
+                            return sendApiRequest(segment);
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }, executor);
+                    futures.add(future);
+                }
+            }
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            List<String> results = new ArrayList<>();
+            for (CompletableFuture<String> future : futures) {
+                results.add(future.get());
+            }
+
+            executor.shutdown();
+
+            generateSrtFile(results, changeFileExtension(file.getAbsolutePath(), "srt"));
 
             System.out.println("Consumer invoked " + Thread.currentThread().getName() + ": " + outputPath);
-        } catch (IOException | InterruptedException e) {
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String sendApiRequest(File file) throws IOException, InterruptedException {
+
+        byte[] fileBytes = Files.readAllBytes(file.toPath());
+
+        StringBuilder sb = new StringBuilder("https://api.cloudflare.com/client/v4/accounts/");
+        sb.append(System.getenv("CF_ACCOUNT_ID"));
+        sb.append("/ai/run/@cf/openai/whisper-tiny-en");
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(sb.toString()))
+                .header("Content-Type", "application/octet-stream")
+                .header("Authorization", System.getenv("CF_API_TOKEN"))
+                .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
+                .build();
+
+        System.out.println("Sending request: " + file.getName());
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request,
+                HttpResponse.BodyHandlers.ofString());
+        return response.body();
+    }
+
+    private static void generateSrtFile(List<String> results, String outputFileName) throws IOException {
+
+        int counter = 1;
+        double globalStartTime = 0.0;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
+            for (String result : results) {
+                JSONObject jsonResponse = new JSONObject(result);
+                String vttContent = jsonResponse.getJSONObject("result").getString("vtt");
+
+                String[] lines = vttContent.split("\n");
+                for (int i = 0; i < lines.length; i++) {
+
+                    if (lines[i].trim().isEmpty() || lines[i].startsWith("WEBVTT")) {
+                        continue;
+                    }
+
+//                    1
+//                    00:00:00,290 --> 00:00:03,839
+//                    Hi everybody. So
+//                    today we're gonna
+//
+//                    2
+//                    00:00:03,839 --> 00:00:07,740
+//                    talk about the
+//                    structure of OSs.
+//
+//                    3
+//                    00:00:07,740 --> 00:00:11,070
+//                    Are there software
+//                    architecture?
+
+                    // Write the counter number
+                    writer.write(counter++ + "\n");
+
+                    // Write the timestamp
+                    String[] timestamps = lines[i].split(" --> ");
+                    if (timestamps.length == 2) {
+                        String start = adjustTimestamp(timestamps[0], globalStartTime);
+                        String end = adjustTimestamp(timestamps[1], globalStartTime);
+                        writer.write(start + " --> " + end + "\n");
+                    }
+
+                    // Write the subtitle text
+                    while (i + 1 < lines.length && !lines[i + 1].contains("-->")) {
+                        writer.write(lines[++i] + "\n");
+                    }
+
+                    writer.write("\n");
+                }
+
+                globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
+            }
+            System.out.println("Generated Srt file: " + outputFileName);
+        }
+    }
+
+    private static String adjustTimestamp(String timestamp, double offset) {
+        double timeInSeconds = parseTimestamp(timestamp) + offset;
+        return formatSrtTimestamp(timeInSeconds);
+    }
+
+    private static double parseTimestamp(String timestamp) {
+        String[] parts = timestamp.split(":|\\.");
+        double hours = Double.parseDouble(parts[0]) * 3600;
+        double minutes = Double.parseDouble(parts[1]) * 60;
+        double seconds = Double.parseDouble(parts[2]);
+        double milliseconds = Double.parseDouble(parts[3]) / 1000;
+        return hours + minutes + seconds + milliseconds;
+    }
+
+    private static String formatSrtTimestamp(double seconds) {
+        int hours = (int) (seconds / 3600);
+        int minutes = (int) ((seconds % 3600) / 60);
+        int secs = (int) (seconds % 60);
+        int millis = (int) ((seconds - secs) * 1000);
+
+        return String.format("%02d:%02d:%02d,%03d", hours, minutes, secs, millis);
     }
 
     private static List<File> splitAudioIntoSegments(File videoFile) throws IOException, InterruptedException {
@@ -136,21 +257,6 @@ public class Extractor {
 
         return audioSegments;
     }
-
-//    private static void extractAudioFromVideo(File videoFile, String outputAudioFile) throws IOException, InterruptedException {
-//        ProcessBuilder pb = new ProcessBuilder(
-//                "ffmpeg",
-//                "-i", videoFile.getAbsolutePath(),
-//                "-vn",
-//                "-acodec", "mp3",
-//                outputAudioFile
-//        );
-//
-//        int exitCode = runProcess(pb);
-//        if (exitCode != 0) {
-//            throw new RuntimeException("Failed to extract audio from video: " + videoFile.getName());
-//        }
-//    }
 
     private static double getAudioDuration(String filePath) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(
@@ -210,7 +316,6 @@ public class Extractor {
             }
             segmentNumber++;
         }
-
         return segments;
     }
 
