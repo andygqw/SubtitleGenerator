@@ -147,7 +147,7 @@ public class Extractor {
 
             String outputPath = changeFileExtension(file, "srt");
             generateSrtFile(results, outputPath);
-            System.out.println("Consumer " + Thread.currentThread().getName() + ": " + file);
+            System.out.println("Consumer " + Thread.currentThread().getName() + " combined: " + file);
 
         } catch (IOException | InterruptedException | ExecutionException e) {
             throw new RuntimeException(e.getMessage());
