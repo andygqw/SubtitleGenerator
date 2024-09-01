@@ -13,11 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
-import java.util.concurrent.TimeUnit;
 
 public class Extractor {
 
@@ -26,7 +23,6 @@ public class Extractor {
     // Constants
     private static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     private static String OUTPUT_DIR = "/output/";
-    private static final int MAX_THREAD = 8;
     private static final int MAX_RETRY = 3;
     private static final String SKIP_MSG = "SKIP";
 
@@ -86,57 +82,75 @@ public class Extractor {
         return filePath.substring(0, dotIndex + 1) + newExtension;
     }
 
-
-    public String getOutputPath (String inputAudioPath){
-
-        return changeFileExtension(inputAudioPath, "srt");
-    }
-
-    public void invokeAI(String inputAudioPath, String outputPath){
+    public List<CompletableFuture<String>> parseFiles(String inputAudioPath){
 
         try {
 
             File file = new File(inputAudioPath);
 
-            //List<File> files = splitAudioIntoSegments(file);
+            List<File> files = splitAudioIntoSegments(file);
 
-            File output = new File(OUTPUT_DIR + file.getName());
-            if(!output.exists()){
-                throw new RuntimeException("No output folder");
-            }
+//            File output = new File(OUTPUT_DIR + file.getName());
+//            if(!output.exists()){
+//                throw new RuntimeException("No output folder");
+//            }
+//            ExecutorService executor = Executors.newFixedThreadPool(MAX_THREAD);
 
-            ExecutorService executor = Executors.newFixedThreadPool(MAX_THREAD);
             List<CompletableFuture<String>> futures = new ArrayList<>();
 
-            if(output.isDirectory()){
-                for(File segment : output.listFiles()){
+            for (File f : files) {
+                if(f.isFile()){
 
                     CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
                         try {
-                            return sendApiRequest(segment);
+                            return sendApiRequest(f);
                         } catch (IOException | InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                    }, executor);
+                    });
                     futures.add(future);
                 }
             }
 
+            System.out.println("Consumer " + Thread.currentThread().getName() + " parsed: " + file.getName());
+
+            return futures;
+
+//            if(output.isDirectory()){
+//                for(File segment : output.listFiles()){
+//
+//                    CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+//                        try {
+//                            return sendApiRequest(segment);
+//                        } catch (IOException | InterruptedException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }, executor);
+//                    futures.add(future);
+//                }
+//            }
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void invokeAI (List<CompletableFuture<String>> futures, String file) {
+        try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             List<String> results = new ArrayList<>();
             for (CompletableFuture<String> future : futures) {
                 results.add(future.get());
             }
 
-            executor.shutdown();
+            String outputPath = changeFileExtension(file, "srt");
+            generateSrtFile(results, outputPath);
+            System.out.println("Consumer " + Thread.currentThread().getName() + ": " + file);
 
-            generateSrtFile(results, changeFileExtension(file.getAbsolutePath(), "srt"));
-
-            System.out.println("Consumer invoked " + Thread.currentThread().getName() + ": " + outputPath);
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 

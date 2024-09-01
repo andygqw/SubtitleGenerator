@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -15,10 +16,10 @@ public class Main {
 
     public static void main(String[] args) {
 
-        final int MAX_SIZE = 1;
+        final int MAX_SIZE = 8;
 
         // Define path here
-        Extractor extractor = new Extractor("path/to/your/video/folder");
+        Extractor extractor = new Extractor("path/to/video/folder");
         Iterator<Path> files = extractor.getIterator();
 
         ExecutorService executorService = Executors.newFixedThreadPool(MAX_SIZE);
@@ -29,7 +30,8 @@ public class Main {
 
             executorService.submit(() -> {
                 System.out.println("Producer " + Thread.currentThread().getName() + ": " + fileName);
-                extractor.invokeAI(fileName, extractor.getOutputPath(fileName));
+                List<CompletableFuture<String>> futures = extractor.parseFiles(fileName);
+                executorService.submit(() -> extractor.invokeAI(futures, fileName));
             });
         }
 
