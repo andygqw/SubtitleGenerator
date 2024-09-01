@@ -10,8 +10,9 @@ The project is designed to handle large video/audio files efficiently by breakin
 
 ## Key Features
 
+- **Producer-Consumer Design**: Optimized the Thread Pool and Blocking Queue to implement a producer-consumer design with thread-safety, ensuring an efficient and stable workflow.
+- **Multithreaded Implementation**: Utilizes multithreading structure to operate audio segments and make multiple transcription requests in parallel in order to ensure efficiency and likely ended with at least **15x** speedups.
 - **Audio Extraction**: Extracts audio from video files and prepares them for transcription.
-- **Multithreaded Implementation**: Utilizes multithreading structure to operate audio segments and make multiple transcription requests in parallel in order to ensure efficiency and likely ended with **8x** speedups.
 - **Handling Large Files**: Automatically splits audio files into smaller segments (e.g., 1-minute chunks) to avoid API size limitations.
 - **Subtitle Generation**: Combines transcriptions of each audio segment into a single `.srt` subtitle file.
 - **Cloudflare Workers Integration**: Leverages Cloudflare Workers AI for secure and scalable serverless processing of API requests.
@@ -24,9 +25,6 @@ The project is designed to handle large video/audio files efficiently by breakin
 - **Efficiency**: Uses multithreading and concurrency features in Java to improve the efficiency of API requests and overall processing speed.
 
 ## Installation
-
-
-
 ### Prerequisites
 
 - Java 11 or higher
