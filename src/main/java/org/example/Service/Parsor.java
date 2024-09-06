@@ -18,13 +18,7 @@ import java.util.stream.Stream;
 import static org.example.Util.Util.*;
 
 
-public class Parsor implements IParsor {
-
-    private ITaskQueue queue;
-
-    public Parsor(){
-        queue = ExecutorQueue.getInstance();
-    }
+public class Parsor {
 
     private static int runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
         pb.redirectErrorStream(true);
@@ -33,7 +27,7 @@ public class Parsor implements IParsor {
         return process.exitValue();
     }
 
-    private double getAudioDuration(String path) throws IOException, InterruptedException {
+    public static double getAudioDuration(String path) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(
                 "ffprobe", "-i", path,
                 "-show_entries", "format=duration",
@@ -48,13 +42,10 @@ public class Parsor implements IParsor {
 
         return Double.parseDouble(duration);
     }
-    private static List<File> splitAudioUsingFFmpeg(File videoFile, double duration) throws IOException, InterruptedException {
-        List<File> segments = new ArrayList<>();
+    public static File splitAudioUsingFFmpeg(String file, double current) throws IOException, InterruptedException {
+
+
         int segmentNumber = 0;
-
-        String audioFileName = videoFile.getName();
-
-        double current = 0.0;
 
         while (!(current > duration)) {
 
@@ -70,7 +61,7 @@ public class Parsor implements IParsor {
                     "ffmpeg",
                     "-ss", String.valueOf(current),
                     "-t", String.valueOf(MAX_SEGMENT_DURATION_SECONDS),
-                    "-i", videoFile.getAbsolutePath(),
+                    "-i", file,
                     "-vn",
                     "-acodec", "mp3",
                     segmentFileName
@@ -82,7 +73,7 @@ public class Parsor implements IParsor {
             if (exitCode == 0) {
                 File segmentFile = new File(segmentFileName);
                 if (segmentFile.exists()) {
-                    segments.add(segmentFile);
+                    segmentFile
                     System.out.println(audioFileName + " added: " + segmentNumber);
                 }
             } else {
@@ -91,56 +82,5 @@ public class Parsor implements IParsor {
             segmentNumber++;
         }
         return segments;
-    }
-
-    // Main Work Chain
-    private void declareFile(Path path) throws IOException {
-
-        AudioFile file = new AudioFile(path.toString());
-        queue.addTask(getDuration(file));
-    }
-    private Runnable getDuration(AudioFile file) {
-        return () -> {
-            try {
-                String name = file.getFileName();
-                System.out.println(Thread.currentThread().getName() + ": Get Duration of " + name);
-                file.setDuration(getAudioDuration(name));
-                queue.addTask(splitAudio(file));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-    private Runnable splitAudio(AudioFile file) {
-        return () -> {
-            String name = file.getFileName();
-            System.out.println(Thread.currentThread().getName() + ": Split Audio of " + name);
-
-
-        };
-    }
-
-    @Override
-    public List<File> splitAudio () {
-
-        try(Stream<Path> paths = Files.walk(Paths.get(Util.FOLDER))) {
-            paths.filter(Files::isRegularFile)
-                    .filter(f -> SKIP_FILES.contains(Util.getFileNameFromPath(f)))
-                    .filter(f -> ALLOWED_EXTENSIONS.contains(Util.getFileExtension(Util.getFileNameFromPath(f))))
-                    .forEach(f -> {
-                        try {
-                            declareFile(f);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
-        }
-
-        return new ArrayList<File>();
     }
 }

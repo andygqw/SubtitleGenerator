@@ -21,6 +21,9 @@ public class AudioFile {
     public String getFileName() {
         return fileName;
     }
+    public double getDuration() {
+        return duration;
+    }
 
     public void setDuration(double duration) {
         this.duration = duration;
