@@ -171,7 +171,7 @@ public class Extractor {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(sb.toString()))
                         .header("Content-Type", "application/octet-stream")
-                        .header("Authorization", System.getenv("CF_API_TOKEN"))
+                        .header("Authorization", System.getenv("API_TOKEN_CF"))
                         .POST(HttpRequest.BodyPublishers.ofByteArray(fileBytes))
                         .build();
 
