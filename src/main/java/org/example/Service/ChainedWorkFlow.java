@@ -63,11 +63,33 @@ public class ChainedWorkFlow implements IWorkFlow{
             String name = file.getFileName();
             System.out.println(Thread.currentThread().getName() + ": Split Audio of " + name);
             try {
-                splitAudioUsingFFmpeg(new File(file.getFileName()), file.getDuration());
-                queue.addTask();
+                int segmentNumber = 0;
+                double current = 0.0;
+                double duration = file.getDuration();
+
+                String audioFileName = getFileName(name);
+                String innerFolder = OUTPUT_FOLDER + audioFileName + "/";
+                File outputDir = new File(innerFolder);
+                if (!outputDir.exists()) {
+                    outputDir.mkdirs();
+                }
+
+                while (current <= duration) {
+
+                    File f = splitAudioUsingFFmpeg(name, current, segmentNumber, innerFolder);
+                    queue.addTask(makeRequest(file, f, segmentNumber));
+                    current += MAX_SEGMENT_DURATION_SECONDS;
+                    segmentNumber++;
+                }
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
+        };
+    }
+
+    private Runnable makeRequest(AudioFile audioFile, File file, int segmentNumber) {
+        return () -> {
+
         };
     }
 

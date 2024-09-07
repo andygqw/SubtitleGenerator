@@ -2,7 +2,7 @@ package org.example.Model;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AudioFile {
 
@@ -10,9 +10,7 @@ public class AudioFile {
 
     private double duration;
 
-    private List<File> segments;
-
-    private Map<Integer, String> textMap;
+    private ConcurrentHashMap<Integer, String> textMap;
 
     public AudioFile(String fileName) {
         this.fileName = fileName;
@@ -24,8 +22,15 @@ public class AudioFile {
     public double getDuration() {
         return duration;
     }
-
     public void setDuration(double duration) {
         this.duration = duration;
     }
+
+    public void addMap(int key, String value) {
+        if (textMap == null) {
+            textMap = new ConcurrentHashMap<>();
+        }
+        textMap.put(key, value);
+    }
+
 }

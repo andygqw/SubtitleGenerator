@@ -1,5 +1,6 @@
 package org.example.Util;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -51,6 +52,11 @@ public class Util {
         }
 
         return filePath.substring(0, dotIndex + 1) + newExtension;
+    }
+
+    public static String getFileName(String filePath) {
+        File file = new File(filePath);
+        return file.getName();
     }
 
     public static String getFileNameFromPath(Path path) {

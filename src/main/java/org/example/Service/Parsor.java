@@ -42,45 +42,29 @@ public class Parsor {
 
         return Double.parseDouble(duration);
     }
-    public static File splitAudioUsingFFmpeg(String file, double current) throws IOException, InterruptedException {
+    public static File splitAudioUsingFFmpeg(String audioFile, double current, int segmentNumber, String innerFolder) throws IOException, InterruptedException {
 
+        String audioFileName = getFileName(audioFile);
 
-        int segmentNumber = 0;
+        String segmentFileName = String.format(innerFolder + audioFileName.substring(0, audioFileName.lastIndexOf('.')) + "_segment_%03d.mp3", segmentNumber);
+        ProcessBuilder pb = new ProcessBuilder(
+                "ffmpeg",
+                "-ss", String.valueOf(current),
+                "-t", String.valueOf(MAX_SEGMENT_DURATION_SECONDS),
+                "-i", audioFile,
+                "-vn",
+                "-acodec", "mp3",
+                segmentFileName
+        );
 
-        while (!(current > duration)) {
-
-            String innerFolder = OUTPUT_FOLDER + audioFileName + "/";
-
-            File outputDir = new File(innerFolder);
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
+        int exitCode = runProcess(pb);
+        if (exitCode == 0) {
+            File segmentFile = new File(segmentFileName);
+            if (segmentFile.exists()) {
+                System.out.println(audioFileName + " added: " + segmentNumber);
+                return segmentFile;
             }
-
-            String segmentFileName = String.format(innerFolder + audioFileName.substring(0, audioFileName.lastIndexOf('.')) + "_segment_%03d.mp3", segmentNumber);
-            ProcessBuilder pb = new ProcessBuilder(
-                    "ffmpeg",
-                    "-ss", String.valueOf(current),
-                    "-t", String.valueOf(MAX_SEGMENT_DURATION_SECONDS),
-                    "-i", file,
-                    "-vn",
-                    "-acodec", "mp3",
-                    segmentFileName
-            );
-
-            current += MAX_SEGMENT_DURATION_SECONDS;
-
-            int exitCode = runProcess(pb);
-            if (exitCode == 0) {
-                File segmentFile = new File(segmentFileName);
-                if (segmentFile.exists()) {
-                    segmentFile
-                    System.out.println(audioFileName + " added: " + segmentNumber);
-                }
-            } else {
-                throw new RuntimeException("Failed to parse audio on segment: " + segmentNumber);
-            }
-            segmentNumber++;
         }
-        return segments;
+        throw new RuntimeException("Failed to parse audio on segment: " + segmentNumber);
     }
 }
