@@ -42,4 +42,7 @@ public class AudioFile {
         }
         return textMap.get(key);
     }
+    public int getSize() {
+        return textMap.size();
+    }
 }

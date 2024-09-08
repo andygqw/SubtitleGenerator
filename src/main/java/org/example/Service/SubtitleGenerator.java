@@ -5,6 +5,5 @@ public class SubtitleGenerator {
         System.out.println(Thread.currentThread().getName() + ": Start Program");
         IWorkFlow work = new ChainedWorkFlow();
         work.run();
-        System.out.println(Thread.currentThread().getName() + ": End Program");
     }
 }

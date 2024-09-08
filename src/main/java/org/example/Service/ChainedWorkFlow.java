@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
 import static org.example.Service.Parsor.getAudioDuration;
@@ -24,6 +24,7 @@ import static org.example.Util.Util.*;
 public class ChainedWorkFlow implements IWorkFlow{
 
     private final ITaskQueue queue;
+    private static CountDownLatch latch;
 
     public ChainedWorkFlow() {
         queue = ExecutorQueue.getInstance();
@@ -81,38 +82,44 @@ public class ChainedWorkFlow implements IWorkFlow{
                     outputDir.mkdirs();
                 }
 
-                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                latch = new CountDownLatch((int)Math.ceil(duration/MAX_SEGMENT_DURATION_SECONDS));
+
                 while (current <= duration) {
 
                     File f = splitAudioUsingFFmpeg(name, current, segmentNumber, innerFolder);
 
                     int finalSegmentNumber = segmentNumber;
-                    futures.add(CompletableFuture.runAsync(() -> {
-                        makeRequest(file, f, finalSegmentNumber);
-                    }, queue.getExecutorService()));
+
+                    queue.addTask(makeRequest(file, f, finalSegmentNumber));
 
                     current += MAX_SEGMENT_DURATION_SECONDS;
                     segmentNumber++;
                 }
-                queue.addTask(combineResults(file, futures));
                 System.out.println(Thread.currentThread().getName() + ": Done split Audio of " + name);
-            } catch (IOException | InterruptedException e) {
+                queue.addTask(combineResults(file, segmentNumber));
+            }
+            catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         };
     }
     private Runnable makeRequest(AudioFile audioFile, File file, int segmentNumber) {
         return () -> {
-            System.out.println(Thread.currentThread().getName() + ": Making Requests of " + file.getName());
             IResquestor requestor = RequestByWhisperTinyEn.getInstance();
             audioFile.addMap(segmentNumber, requestor.sendRequest(file));
+            latch.countDown();
+            System.out.println("Count: " + latch.getCount());
         };
     }
 
-    private Runnable combineResults(AudioFile file, List<CompletableFuture<Void>> futures) {
+    private Runnable combineResults(AudioFile file, int total) {
         return () -> {
             System.out.println(Thread.currentThread().getName() + ": Waiting for " + file.getFileName());
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
             System.out.println(Thread.currentThread().getName() + ": Combining result of " + file.getFileName());
 
             int current = 0;
@@ -120,8 +127,11 @@ public class ChainedWorkFlow implements IWorkFlow{
             double globalStartTime = 0.0;
             int retryCount = 0;
 
+            System.out.println("Check: " + total + " -> " + file.getSize());
+
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(changeFileExtension(file.getFileName(), ".srt")))) {
-                while(file.containsKey(current)) {
+                while(!file.containsKey(current)) {
+
 
                     if(file.getValue(current).isPresent()) {
                         globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
@@ -166,7 +176,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                 System.out.println(Thread.currentThread().getName() + ": Complete with (" + retryCount + ") " + file.getFileName());
                 queue.endExecutorService();
             }
-            catch (IOException e) {
+            catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         };
