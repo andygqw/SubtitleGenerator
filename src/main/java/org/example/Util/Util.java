@@ -67,4 +67,27 @@ public class Util {
     public static String getFileNameFromPath(Path path) {
         return path.getFileName().toString();
     }
+
+    public static String adjustTimestamp(String timestamp, double offset) {
+        double timeInSeconds = parseTimestamp(timestamp) + offset;
+        return formatSrtTimestamp(timeInSeconds);
+    }
+
+    public static double parseTimestamp(String timestamp) {
+        String[] parts = timestamp.split(":|\\.");
+//        double hours = Double.parseDouble(parts[0]) * 3600;
+//        double minutes = Double.parseDouble(parts[1]) * 60;
+        double seconds = Double.parseDouble(parts[0]);
+        double milliseconds = Double.parseDouble(parts[1]) / 1000;
+        return seconds + milliseconds;
+    }
+
+    public static String formatSrtTimestamp(double seconds) {
+        int hours = (int) (seconds / 3600);
+        int minutes = (int) ((seconds % 3600) / 60);
+        int secs = (int) (seconds % 60);
+        int millis = (int) ((seconds % 1) * 1000);
+
+        return String.format("%02d:%02d:%02d,%03d", hours, minutes, secs, millis);
+    }
 }

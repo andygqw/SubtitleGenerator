@@ -21,6 +21,11 @@ public class ExecutorQueue implements ITaskQueue {
     }
 
     @Override
+    public ExecutorService getExecutorService (){
+        return executorService;
+    }
+
+    @Override
     public void addTask(Runnable task) {
 
         executorService.submit(task);
