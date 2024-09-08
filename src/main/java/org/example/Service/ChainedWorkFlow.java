@@ -127,12 +127,13 @@ public class ChainedWorkFlow implements IWorkFlow{
             double globalStartTime = 0.0;
             int retryCount = 0;
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(changeFileExtension(file.getFileName(), ".srt")))) {
-                while(!file.containsKey(current)) {
+            file.print();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(changeFileExtension(file.getFileName(), "srt")))) {
+                while(file.containsKey(current)) {
 
-
-                    if(file.getValue(current).isPresent()) {
+                    if(!file.getValue(current).isPresent()) {
                         globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
+                        current++;
                         retryCount++;
                         continue;
                     }

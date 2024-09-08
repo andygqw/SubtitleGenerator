@@ -15,6 +15,7 @@ public class AudioFile {
 
     public AudioFile(String fileName) {
         this.fileName = fileName;
+        textMap = new ConcurrentHashMap<>();
     }
 
     public String getFileName() {
@@ -42,7 +43,9 @@ public class AudioFile {
         }
         return textMap.get(key);
     }
-    public int getSize() {
-        return textMap.size();
+    public void print() {
+        textMap.forEach((key, value) -> {
+            System.out.println("Key: " + key + ", Value: " + value.orElse("No value present"));
+        });
     }
 }
