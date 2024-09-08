@@ -89,7 +89,6 @@ public class ChainedWorkFlow implements IWorkFlow{
                     System.out.println(Thread.currentThread().getName() + ": Done segment " + segmentNumber + " of " + name);
 
                     int finalSegmentNumber = segmentNumber;
-
                     queue.addTask(makeRequest(file, f, finalSegmentNumber, latch));
 
                     current += MAX_SEGMENT_DURATION_SECONDS;
