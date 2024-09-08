@@ -8,7 +8,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ChainedWorkFlow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ChainedWorkFlow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ExecutorQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ExecutorQueue.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ITaskQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ITaskQueue.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Util/Util.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Util/Util.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -122,7 +121,7 @@
       <workItem from="1724762288831" duration="28247000" />
       <workItem from="1725167263023" duration="7960000" />
       <workItem from="1725382043401" duration="204000" />
-      <workItem from="1725652103379" duration="23679000" />
+      <workItem from="1725652103379" duration="24562000" />
     </task>
     <servers />
   </component>

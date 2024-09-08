@@ -164,6 +164,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     current++;
                 }
                 System.out.println(Thread.currentThread().getName() + ": Complete with (" + retryCount + ") " + file.getFileName());
+                queue.endExecutorService();
             }
             catch (IOException e) {
                 System.out.println(e.getMessage());
@@ -184,6 +185,5 @@ public class ChainedWorkFlow implements IWorkFlow{
                 throw new RuntimeException(e);
             }
         });
-        queue.endExecutorService();
     }
 }

@@ -35,7 +35,6 @@ public class ExecutorQueue implements ITaskQueue {
     @Override
     public void endExecutorService() {
         executorService.shutdown();
-
         try {
             if (!executorService.awaitTermination(3600, TimeUnit.SECONDS)) {
                 executorService.shutdownNow();
