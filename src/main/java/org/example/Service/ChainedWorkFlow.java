@@ -53,6 +53,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                 System.out.println(Thread.currentThread().getName() + ": Get Duration of " + name);
                 file.setDuration(getAudioDuration(name));
                 queue.addTask(splitAudio(file));
+                System.out.println(Thread.currentThread().getName() + ": Done Duration of " + name);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -81,12 +82,12 @@ public class ChainedWorkFlow implements IWorkFlow{
                     current += MAX_SEGMENT_DURATION_SECONDS;
                     segmentNumber++;
                 }
+                System.out.println(Thread.currentThread().getName() + ": Done split Audio of " + name);
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         };
     }
-
     private Runnable makeRequest(AudioFile audioFile, File file, int segmentNumber) {
         return () -> {
 

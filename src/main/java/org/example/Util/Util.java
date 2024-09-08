@@ -17,7 +17,12 @@ public class Util {
     public static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".mkv", ".MKV");
 
     public static final int MAX_SEGMENT_DURATION_SECONDS = 60;
-    private static final int MAX_RETRY = 3;
+    public static final int MAX_RETRY = 3;
+
+    public static final String API_URL_BASE = "https://api.cloudflare.com/client/v4/accounts/";
+    public static final String CF_ACCOUNT_ID = "CF_ACCOUNT_ID";
+    public static final String API_WHISPER_TINY_EN_URL = "/ai/run/@cf/openai/whisper-tiny-en";
+    public static final String API_TOKEN = "API_TOKEN_CF";
 
     /**
      * Get the extension of the given file path

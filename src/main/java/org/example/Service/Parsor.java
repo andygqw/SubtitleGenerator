@@ -42,6 +42,7 @@ public class Parsor {
 
         return Double.parseDouble(duration);
     }
+
     public static File splitAudioUsingFFmpeg(String audioFile, double current, int segmentNumber, String innerFolder) throws IOException, InterruptedException {
 
         String audioFileName = getFileName(audioFile);
