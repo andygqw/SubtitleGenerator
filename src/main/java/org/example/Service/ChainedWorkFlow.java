@@ -24,7 +24,6 @@ import static org.example.Util.Util.*;
 public class ChainedWorkFlow implements IWorkFlow{
 
     private final ITaskQueue queue;
-    private static CountDownLatch latch;
 
     public ChainedWorkFlow() {
         queue = ExecutorQueue.getInstance();
@@ -82,7 +81,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     outputDir.mkdirs();
                 }
 
-                latch = new CountDownLatch((int)Math.ceil(duration/MAX_SEGMENT_DURATION_SECONDS));
+                CountDownLatch latch = new CountDownLatch((int)Math.ceil(duration/MAX_SEGMENT_DURATION_SECONDS));
 
                 while (current <= duration) {
 
@@ -91,20 +90,20 @@ public class ChainedWorkFlow implements IWorkFlow{
 
                     int finalSegmentNumber = segmentNumber;
 
-                    queue.addTask(makeRequest(file, f, finalSegmentNumber));
+                    queue.addTask(makeRequest(file, f, finalSegmentNumber, latch));
 
                     current += MAX_SEGMENT_DURATION_SECONDS;
                     segmentNumber++;
                 }
                 System.out.println(Thread.currentThread().getName() + ": Done split Audio of " + name);
-                queue.addTask(combineResults(file));
+                queue.addTask(combineResults(file, latch));
             }
             catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         };
     }
-    private Runnable makeRequest(AudioFile audioFile, File file, int segmentNumber) {
+    private Runnable makeRequest(AudioFile audioFile, File file, int segmentNumber, CountDownLatch latch) {
         return () -> {
             IResquestor requestor = RequestByWhisperTinyEn.getInstance();
             audioFile.addMap(segmentNumber, requestor.sendRequest(file));
@@ -112,7 +111,7 @@ public class ChainedWorkFlow implements IWorkFlow{
         };
     }
 
-    private Runnable combineResults(AudioFile file) {
+    private Runnable combineResults(AudioFile file, CountDownLatch latch) {
         return () -> {
             System.out.println(Thread.currentThread().getName() + ": Waiting for " + file.getFileName());
             try {
@@ -127,7 +126,6 @@ public class ChainedWorkFlow implements IWorkFlow{
             double globalStartTime = 0.0;
             int retryCount = 0;
 
-            file.print();
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(changeFileExtension(file.getFileName(), "srt")))) {
                 while(file.containsKey(current)) {
 
@@ -143,6 +141,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     JSONObject jsonResponse = new JSONObject(result);
                     String vttContent = jsonResponse.getJSONObject("result").getString("vtt");
                     String[] lines = vttContent.split("\n");
+
 
                     for (int i = 0; i < lines.length; i++) {
 
@@ -173,7 +172,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     current++;
                 }
                 System.out.println(Thread.currentThread().getName() + ": Complete with (" + retryCount + ") " + file.getFileName());
-                queue.endExecutorService();
+                //queue.endExecutorService();
             }
             catch (Exception e) {
                 System.out.println(e.getMessage());
