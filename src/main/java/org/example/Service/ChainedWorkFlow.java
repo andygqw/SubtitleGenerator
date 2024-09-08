@@ -87,6 +87,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                 while (current <= duration) {
 
                     File f = splitAudioUsingFFmpeg(name, current, segmentNumber, innerFolder);
+                    System.out.println(Thread.currentThread().getName() + ": Done segment " + segmentNumber + " of " + name);
 
                     int finalSegmentNumber = segmentNumber;
 
@@ -96,7 +97,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     segmentNumber++;
                 }
                 System.out.println(Thread.currentThread().getName() + ": Done split Audio of " + name);
-                queue.addTask(combineResults(file, segmentNumber));
+                queue.addTask(combineResults(file));
             }
             catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
@@ -108,11 +109,10 @@ public class ChainedWorkFlow implements IWorkFlow{
             IResquestor requestor = RequestByWhisperTinyEn.getInstance();
             audioFile.addMap(segmentNumber, requestor.sendRequest(file));
             latch.countDown();
-            System.out.println("Count: " + latch.getCount());
         };
     }
 
-    private Runnable combineResults(AudioFile file, int total) {
+    private Runnable combineResults(AudioFile file) {
         return () -> {
             System.out.println(Thread.currentThread().getName() + ": Waiting for " + file.getFileName());
             try {
@@ -126,8 +126,6 @@ public class ChainedWorkFlow implements IWorkFlow{
             int counter = 1;
             double globalStartTime = 0.0;
             int retryCount = 0;
-
-            System.out.println("Check: " + total + " -> " + file.getSize());
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(changeFileExtension(file.getFileName(), ".srt")))) {
                 while(!file.containsKey(current)) {

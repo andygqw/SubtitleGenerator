@@ -62,7 +62,6 @@ public class Parsor {
         if (exitCode == 0) {
             File segmentFile = new File(segmentFileName);
             if (segmentFile.exists()) {
-                System.out.println(audioFileName + " added: " + segmentNumber);
                 return segmentFile;
             }
         }
