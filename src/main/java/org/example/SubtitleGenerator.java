@@ -1,4 +1,7 @@
-package org.example.Service;
+package org.example;
+
+import org.example.Service.ChainedWorkFlow;
+import org.example.Service.IWorkFlow;
 
 public class SubtitleGenerator {
     public static void main(String[] args) {

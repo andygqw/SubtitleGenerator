@@ -8,6 +8,8 @@ The project is designed to handle **large** video/audio files efficiently by bre
 
 ## Key Features
 
+- **Handling Multiple Videos Simultaneously**: 
+  * Designed for multiple video/audio manipulation asynchronously
 - **Producer-Consumer Design**: 
   * Optimized the Thread Pool and Blocking Queue to implement a producer-consumer design with thread-safety, ensuring an efficient and stable workflow.
 - **Multithreaded Implementation**: 

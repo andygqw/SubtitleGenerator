@@ -80,11 +80,11 @@
       </method>
     </configuration>
     <configuration name="SubtitleGenerator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="org.example.Service.SubtitleGenerator" />
+      <option name="MAIN_CLASS_NAME" value="org.example.SubtitleGenerator" />
       <module name="SubtitleGenerator" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="org.example.Service.*" />
+          <option name="PATTERN" value="org.example.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
