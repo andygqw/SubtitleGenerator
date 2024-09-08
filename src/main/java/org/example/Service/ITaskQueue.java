@@ -9,4 +9,5 @@ public interface ITaskQueue {
 
     ExecutorService getExecutorService();
     void addTask(Runnable task);
+    void endExecutorService();
 }

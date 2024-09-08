@@ -2,6 +2,7 @@ package org.example.Service;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ExecutorQueue implements ITaskQueue {
 
@@ -29,5 +30,19 @@ public class ExecutorQueue implements ITaskQueue {
     public void addTask(Runnable task) {
 
         executorService.submit(task);
+    }
+
+    @Override
+    public void endExecutorService() {
+        executorService.shutdown();
+
+        try {
+            if (!executorService.awaitTermination(3600, TimeUnit.SECONDS)) {
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 }

@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="79686337-f858-40d5-87e7-0fcab27c52a7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/SubtitleGenerator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Model/AudioFile.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Model/AudioFile.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ChainedWorkFlow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ChainedWorkFlow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ExecutorQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ExecutorQueue.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Service/ITaskQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Service/ITaskQueue.java" afterDir="false" />
@@ -54,6 +52,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.Main.executor": "Run",
+    "Application.SubtitleGenerator.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
@@ -67,7 +66,7 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.SubtitleGenerator">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="org.example.Main" />
       <module name="SubtitleGenerator" />
@@ -81,8 +80,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SubtitleGenerator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="org.example.Service.SubtitleGenerator" />
+      <module name="SubtitleGenerator" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.Service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.SubtitleGenerator" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
@@ -109,7 +122,7 @@
       <workItem from="1724762288831" duration="28247000" />
       <workItem from="1725167263023" duration="7960000" />
       <workItem from="1725382043401" duration="204000" />
-      <workItem from="1725652103379" duration="21921000" />
+      <workItem from="1725652103379" duration="23679000" />
     </task>
     <servers />
   </component>

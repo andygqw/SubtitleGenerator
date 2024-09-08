@@ -35,7 +35,7 @@ public class ChainedWorkFlow implements IWorkFlow{
 
         try(Stream<Path> paths = Files.walk(Paths.get(FOLDER))) {
             paths.filter(Files::isRegularFile)
-                    .filter(f -> SKIP_FILES.contains(getFileNameFromPath(f)))
+                    .filter(f -> !SKIP_FILES.contains(getFileNameFromPath(f)))
                     .filter(f -> ALLOWED_EXTENSIONS.contains(getFileExtension(getFileNameFromPath(f))))
                     .forEach(result::add);
         } catch (IOException e) {
@@ -50,6 +50,7 @@ public class ChainedWorkFlow implements IWorkFlow{
 
         AudioFile file = new AudioFile(path.toString());
         queue.addTask(getDuration(file));
+        System.out.println(Thread.currentThread().getName() + ": Added to queue " + path);
     }
     private Runnable getDuration(AudioFile file) {
         return () -> {
@@ -183,6 +184,6 @@ public class ChainedWorkFlow implements IWorkFlow{
                 throw new RuntimeException(e);
             }
         });
-
+        queue.endExecutorService();
     }
 }
