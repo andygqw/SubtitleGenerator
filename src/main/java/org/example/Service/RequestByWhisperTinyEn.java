@@ -48,7 +48,7 @@ public class RequestByWhisperTinyEn implements IResquestor{
         while(retry < MAX_RETRY) {
             try {
                 if (retry != 0) {
-                    Thread.sleep(300);
+                    Thread.sleep(RETRY_GAP);
                 }
                 byte[] fileBytes = Files.readAllBytes(file.toPath());
 

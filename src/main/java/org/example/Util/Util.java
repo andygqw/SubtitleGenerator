@@ -11,13 +11,14 @@ public class Util {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
-    public static final String FOLDER = "path/to/your/video/folder";
+    public static final String FOLDER = "/path/to/your/video/folder";
     public static final String OUTPUT_FOLDER = FOLDER + "/output/";
     public static final List<String> SKIP_FILES = Arrays.asList(".DS_Stores", "");
     public static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("mkv", "MKV");
 
     public static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     public static final int MAX_RETRY = 3;
+    public static final int RETRY_GAP = 300;
 
     public static final String API_URL_BASE = "https://api.cloudflare.com/client/v4/accounts/";
     public static final String CF_ACCOUNT_ID = "CF_ACCOUNT_ID";
