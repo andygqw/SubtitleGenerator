@@ -11,11 +11,12 @@ public class Util {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
-    public static final String FOLDER = "/path/to/your/video/folder";
+    public static final String FOLDER = "/Volumes/Andys_SSD/Online_Courses/Antra/temp";
     public static final String OUTPUT_FOLDER = FOLDER + "/output/";
     public static final List<String> SKIP_FILES = Arrays.asList(".DS_Stores", "");
     public static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("mkv", "MKV");
 
+    public static final int MAX_SEMAPHORE_RESOURCE = 3;
     public static final int MAX_SEGMENT_DURATION_SECONDS = 60;
     public static final int MAX_RETRY = 3;
     public static final int RETRY_GAP = 300;

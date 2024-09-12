@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Stream;
 
 import static org.example.Service.Parsor.getAudioDuration;
@@ -24,6 +25,7 @@ import static org.example.Util.Util.*;
 public class ChainedWorkFlow implements IWorkFlow{
 
     private final ITaskQueue queue;
+    private static final Semaphore semaphore = new Semaphore(MAX_SEMAPHORE_RESOURCE);
 
     public ChainedWorkFlow() {
         queue = ExecutorQueue.getInstance();
@@ -46,8 +48,8 @@ public class ChainedWorkFlow implements IWorkFlow{
     }
 
     // Main WorkFlow
-    private void declareFile(Path path) throws IOException {
-
+    private void declareFile(Path path) throws IOException, InterruptedException {
+        semaphore.acquire();
         AudioFile file = new AudioFile(path.toString());
         queue.addTask(getDuration(file));
         System.out.println(Thread.currentThread().getName() + ": Added to queue " + path);
@@ -171,6 +173,7 @@ public class ChainedWorkFlow implements IWorkFlow{
                     current++;
                 }
                 System.out.println(Thread.currentThread().getName() + ": Complete with (" + retryCount + ") " + file.getFileName());
+                semaphore.release();
                 //queue.endExecutorService();
             }
             catch (Exception e) {
@@ -188,7 +191,7 @@ public class ChainedWorkFlow implements IWorkFlow{
         files.forEach(p -> {
             try {
                 declareFile(p);
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
