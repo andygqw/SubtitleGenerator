@@ -1,10 +1,10 @@
 # Generate Subtitles for Long Videos (in English, Java)
 
-This project demonstrates the development of an audio transcription service leveraging Cloudflare Workers AI and the OpenAI Whisper model.
+This project is an audio transcription service leveraging Cloudflare Workers AI and the OpenAI Whisper model.
 It showcases the extraction of audio from video files and the transcribing of speech into text using an asynchronous approach.
-The project splits audio files into smaller segments, sends them in parallel to an AI-powered transcription service, and combines the results into a readable subtitle format (.srt).
+The project manipulates and processes audios in parallel with AI-powered transcription service, constructing into a common subtitle format (.srt).
 
-The project is designed to handle multiple **large** video/audio files efficiently by breaking them into segments and processing them concurrently with Java.
+**The project is designed to handle multiple **large** video/audio files efficiently by breaking them into segments and processing them concurrently with Java.**
 
 ## Usage
 
@@ -66,7 +66,7 @@ The project is designed to handle multiple **large** video/audio files efficient
    mvn install
     ```
 3. Make sure **`ffmpeg`** is installed and available in your system's PATH.
-4. Replace placeholders for **`CF_ACCOUNT_ID`** and **`"CF_API_TOKEN"`** in Extractor.java with your Cloudflare access.
+4. Replace placeholders for **`CF_ACCOUNT_ID`** and **`"CF_API_TOKEN"`** in Util.java with your Cloudflare access.
 
 ## Technical Challenges
 This project tackled several technical challenges, including:
