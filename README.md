@@ -4,18 +4,28 @@ This project demonstrates the development of an audio transcription service leve
 It showcases the extraction of audio from video files and the transcribing of speech into text using an asynchronous approach.
 The project splits audio files into smaller segments, sends them in parallel to an AI-powered transcription service, and combines the results into a readable subtitle format (.srt).
 
-The project is designed to handle **large** video/audio files efficiently by breaking them into segments and processing them concurrently with Java.
+The project is designed to handle multiple **large** video/audio files efficiently by breaking them into segments and processing them concurrently with Java.
+
+## Usage
+
+1. Put all videos in a single folder
+2. Replace `FOLDER` value with the video folder(in step 1) path in `Util.java`.
+3. Run `SubtitleGenerator.Main`.
+4. Srt file will be generated in same folder(in step 1) with same file name as its corresponding video.
+5. Check log info that has `Complete with (0) ...`, the number in parentheses indicates how many `segments` Whisper AI failed to transcribe. A video has `video_length_in_seconds/MAX_SEGMENT_DURATION_SECONDS` segments.
 
 ## Key Features
 
-- **Handling Multiple Videos Simultaneously**: 
-  * Designed for multiple video/audio manipulation asynchronously
 - **Producer-Consumer Design**: 
-  * Optimized the Thread Pool and Blocking Queue to implement a producer-consumer design with thread-safety, ensuring an efficient and stable workflow.
+  * (Deprecated)Optimized the Thread Pool and Blocking Queue to implement a producer-consumer design with thread-safety, ensuring an efficient and stable workflow.
 - **Multithreaded Implementation**: 
   * Utilizes multithreading structure to operate audio segments and make multiple transcription requests in parallel in order to ensure efficiency and likely ended with at least **15x** speedups.
+- **Semaphore Design**:
+  * Applied semaphore to ensure a handled workflow arrangement with great success rate in multi-threaded environment.
 - **Audio Extraction**:
   * Extracts audio from video files and prepares them for transcription.
+- **Handling multiple Files**:
+  * Processing all videos in one folder simultaneously, get rid of serial processing.
 - **Handling Large Files**: 
   * Automatically splits audio files into smaller segments (e.g., 1-minute chunks) to avoid API size limitations.
 - **Subtitle Generation**:
@@ -27,12 +37,14 @@ The project is designed to handle **large** video/audio files efficiently by bre
 
 ## Project Highlights
 
-- **Modern Java Features**:
-  * The project demonstrates usage of Java's `HttpClient`, `CompletableFuture`, and SSL/TLS handling.
-- **API Integration**:
-  * Integrates with Cloudflare's OpenAI Whisper API for high-quality speech-to-text transcription.
+- **Multi-Large Videos**:
+  * Capable of handling multiple, large video/audio files simultaneously.
+- **Trained Performance**:
+  * Tuned auto retry mechanism, semaphore and threads to ensure high efficiency, accuracy, and stability.
 - **Efficiency**:
   * Uses multithreading and concurrency features in Java to improve the efficiency of API requests and overall processing speed.
+- **API Integration**:
+  * Integrates with Cloudflare's OpenAI Whisper API for high-quality speech-to-text transcription.
 
 ## Installation
 ### Prerequisites
