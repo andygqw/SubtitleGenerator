@@ -1,10 +1,12 @@
 # Generate Subtitles for Long Videos (in English, Java)
 
-This project is an audio transcription service leveraging Cloudflare Workers AI and the OpenAI Whisper model.
-It showcases the extraction of audio from video files and the transcribing of speech into text using an asynchronous approach.
-The project manipulates and processes audios in parallel with AI-powered transcription service, constructing into a common subtitle format (.srt).
-
 **The project is designed to handle multiple **large** video/audio files efficiently by breaking them into segments and processing them concurrently with Java.**
+
+[//]: # (This project is an audio transcription service leveraging Cloudflare Workers AI and the OpenAI Whisper model.)
+
+[//]: # (It showcases the extraction of audio from video files and the transcribing of speech into text using an asynchronous approach.)
+
+[//]: # (The project manipulates and processes audios in parallel with AI-powered transcription service, constructing into a common subtitle format &#40;.srt&#41;.)
 
 ## Usage
 
@@ -68,10 +70,15 @@ The project manipulates and processes audios in parallel with AI-powered transcr
 3. Make sure **`ffmpeg`** is installed and available in your system's PATH.
 4. Replace placeholders for **`CF_ACCOUNT_ID`** and **`"CF_API_TOKEN"`** in Util.java with your Cloudflare access.
 
-## Technical Challenges
-This project tackled several technical challenges, including:
+[//]: # (## Technical Challenges)
 
-* **Handling Large Files**: Splitting large audio files into smaller chunks for processing due to API constraints.
-* **Concurrency**: Optimized performance through the use of CompletableFuture for asynchronous processing.
-* **SSL/TLS Integration**: Properly managing secure API requests with SSL/TLS and handling errors such as bad_record_mac.
-* **OpenAI Whisper AI Model Integration**: Integrating properly with OpenAI's Whisper-tiny-en model.
+[//]: # (This project tackled several technical challenges, including:)
+
+[//]: # ()
+[//]: # (* **Handling Large Files**: Splitting large audio files into smaller chunks for processing due to API constraints.)
+
+[//]: # (* **Concurrency**: Optimized performance through the use of CompletableFuture for asynchronous processing.)
+
+[//]: # (* **SSL/TLS Integration**: Properly managing secure API requests with SSL/TLS and handling errors such as bad_record_mac.)
+
+[//]: # (* **OpenAI Whisper AI Model Integration**: Integrating properly with OpenAI's Whisper-tiny-en model.)
