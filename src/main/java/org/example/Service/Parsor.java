@@ -67,4 +67,28 @@ public class Parsor {
         }
         throw new RuntimeException("Failed to parse audio on segment: " + segmentNumber);
     }
+
+    public static void deleteOutputFolder(String path) {
+
+        File folder = new File(path);
+
+        boolean isDeleted = deleteFolderRecursively(folder);
+        if (!isDeleted) {
+            throw new RuntimeException("Failed to delete folder: " + path);
+        }
+    }
+
+    private static boolean deleteFolderRecursively(File folder) {
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    deleteFolderRecursively(file);
+                }
+            }
+        }
+
+        return folder.delete();
+    }
 }

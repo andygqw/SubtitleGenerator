@@ -18,8 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Stream;
 
-import static org.example.Service.Parsor.getAudioDuration;
-import static org.example.Service.Parsor.splitAudioUsingFFmpeg;
+import static org.example.Service.Parsor.*;
 import static org.example.Util.Util.*;
 
 public class ChainedWorkFlow implements IWorkFlow{
@@ -172,6 +171,9 @@ public class ChainedWorkFlow implements IWorkFlow{
                     globalStartTime += MAX_SEGMENT_DURATION_SECONDS;
                     current++;
                 }
+//                String innerFolder = getFileName(file.getFileName());
+//                System.out.println(Thread.currentThread().getName() + ": Deleting output folder: " + innerFolder);
+//                deleteOutputFolder(FOLDER + OUTPUT_FOLDER + innerFolder);
                 System.out.println(Thread.currentThread().getName() + ": Complete with (" + retryCount + ") " + file.getFileName());
                 semaphore.release();
                 //queue.endExecutorService();
